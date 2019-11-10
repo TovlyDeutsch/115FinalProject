@@ -1,7 +1,7 @@
 
 from scipy import stats
 from typing import *
-from functools import partial
+from functools import partial, reduce
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -64,17 +64,28 @@ def gen_example(segments: List[Segment], constraints: List[Constraint]):
   example = Example(gen_seq(segments), gen_seq(constraints))
   return example
 
+def gen_examples_for_input(word: List[Segment], ranking: List[Constraint], min_num, max_num):
+  # TODO maybe change from unifrom random to dome dist weight toward larger nums
+  num_examples = randint(min_num, max_num)
+  return [gen_example(word, ranking) for i in range(num_examples)]
+
+def gen_all_examples(words_and_rankings: List[Tuple[List[Segment], List[Constraint]]]):
+  examples = []
+  for word, ranking in words_and_rankings:
+    examples += gen_examples_for_input(word, ranking, 1, 15)
+  return examples
 
 if __name__ == "__main__":
   s_z_seg = Segment([(1, 0.8), (2, 0.2)])
-  test_word = [s_z_seg, s_z_seg, s_z_seg, s_z_seg]
+  test_word_1 = [s_z_seg, s_z_seg, s_z_seg, s_z_seg]
 
   test_constraint = Constraint([(1, 0.8), (2, 0.2)])
-  test_ranking = [test_constraint, test_constraint]
+  test_ranking_1 = [test_constraint, test_constraint]
+  words_and_rankings = [(test_word_1, test_ranking_1)]
 
-  train_data = [gen_example(test_word, test_ranking) for i in range(10)]
-  valid_data = [gen_example(test_word, test_ranking) for i in range(10)]
-  test_data = [gen_example(test_word, test_ranking) for i in range(10)]
+  train_data = gen_all_examples(words_and_rankings)
+  valid_data = gen_all_examples(words_and_rankings)
+  test_data = gen_all_examples(words_and_rankings)
   SRC = Field()
   TRG = Field()
 
