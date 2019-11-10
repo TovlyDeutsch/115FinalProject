@@ -29,7 +29,7 @@ class Sampleable():
 class Segment(Sampleable):
   def sample(self):
     phone_lookup = {
-      0: '<sep>', 1: 'a', 2: 'k'
+      0: '<sep>', 1: 's', 2: 'z', 3: 'd', 4: 't', 4: 'n', 5: 'a'
     }
     return phone_lookup[self.dist.rvs()]
 
@@ -66,11 +66,15 @@ def gen_example(segments: List[Segment], constraints: List[Constraint]):
 
 
 if __name__ == "__main__":
-  test_seg = [(1, 0.8), (2, 0.2)]
-  test_ranking = [(1, 0.8), (2, 0.2)]
-  train_data = [gen_example(test_seg, test_ranking) for i in range(10)]
-  valid_data = [gen_example(test_seg, test_ranking) for i in range(10)]
-  test_data = [gen_example(test_seg, test_ranking) for i in range(10)]
+  s_z_seg = Segment([(1, 0.8), (2, 0.2)])
+  test_word = [s_z_seg, s_z_seg, s_z_seg, s_z_seg]
+
+  test_constraint = Constraint([(1, 0.8), (2, 0.2)])
+  test_ranking = [test_constraint, test_constraint]
+
+  train_data = [gen_example(test_word, test_ranking) for i in range(10)]
+  valid_data = [gen_example(test_word, test_ranking) for i in range(10)]
+  test_data = [gen_example(test_word, test_ranking) for i in range(10)]
   SRC = Field()
   TRG = Field()
 
