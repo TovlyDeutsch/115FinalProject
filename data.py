@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from random import randint
+import numpy as np
 
 from torchtext.datasets import TranslationDataset, Multi30k
 from torchtext.data import Field, BucketIterator
@@ -15,73 +16,81 @@ import spacy
 import random
 import math
 import time
+from abc import ABC, abstractmethod
 
-class Sampleable():
-    def __init__(self, choices: List[Tuple[int, float]]):
-      possible_segments = [x[0] for x in choices]
-      probs = [x[1] for x in choices]
-      self.dist = stats.rv_discrete(name='custm', values=(possible_segments, probs))
-    
-    @abstractmethod
-    def sample(self) -> str:
-      pass
 
-class Segment(Sampleable):
-  def sample(self):
-    phone_lookup = {
-      0: '<sep>', 1: 's', 2: 'z', 3: 'd', 4: 't', 4: 'n', 5: 'a'
-    }
-    return phone_lookup[self.dist.rvs()]
+class Sampleable(ABC):
+  def __init__(self, choices: List[Tuple[str, float]]):
+    self.possible_segments = [x[0] for x in choices]
+    self.probs = [x[1] for x in choices]
 
-class Constraint(Sampleable):
-  def sample(self):
-    con_lookup = {
-      0: '<sep>', 1: 'agree', 2: '*D'
-    }
-    return con_lookup[self.dist.rvs()]
+  def sample(self) -> str:
+    return np.random.choice(self.possible_segments, 1, p=self.probs)[0]
 
-# class Sequence():
-#   def __init__(self):
-#     pass
 
 class Example():
   def __init__(self, src, trg):
     self.src = src
     self.trg = trg
 
+
 def gen_seq(segments: Sequence[Sampleable]):
+  """This generates multiple intances of a word/input seperated by <sep>"""
   src = ['<sos>']
-  number_of_outputs = randint(5, 15)
+  number_of_outputs = randint(5, 15)  # TODO remove magic numbers here
   for i in range(number_of_outputs):
     for seg in segments:
       src.append(seg.sample())
-    if i != number_of_outputs - 1:
       src.append('<sep>')
-  src.append('<eos>')
+  src[-1] = '<eos>'
   return src
 
-def gen_example(segments: List[Segment], constraints: List[Constraint]):
+
+def gen_example(segments: List[Sampleable], constraints: List[Sampleable]):
   example = Example(gen_seq(segments), gen_seq(constraints))
   return example
 
-def gen_examples_for_input(word: List[Segment], ranking: List[Constraint], min_num, max_num):
-  # TODO maybe change from unifrom random to dome dist weight toward larger nums
+
+def gen_examples_for_input(
+        word: List[Sampleable],
+        ranking: List[Sampleable],
+        min_num: int,
+        max_num: int):
+  # TODO maybe change from unifrom random to dome dist weight toward larger
+  # nums
   num_examples = randint(min_num, max_num)
   return [gen_example(word, ranking) for i in range(num_examples)]
 
-def gen_all_examples(words_and_rankings: List[Tuple[List[Segment], List[Constraint]]]):
+
+def gen_all_examples(
+        words_and_rankings: List[Tuple[List[Sampleable], List[Sampleable]]]):
   examples = []
+  min_number_of_examples = 10
+  max_number_of_examples = 20
   for word, ranking in words_and_rankings:
-    examples += gen_examples_for_input(word, ranking, 1, 15)
+    examples += gen_examples_for_input(word,
+                                       ranking,
+                                       min_number_of_examples,
+                                       max_number_of_examples)
   return examples
 
-if __name__ == "__main__":
-  s_z_seg = Segment([(1, 0.8), (2, 0.2)])
-  test_word_1 = [s_z_seg, s_z_seg, s_z_seg, s_z_seg]
 
-  test_constraint = Constraint([(1, 0.8), (2, 0.2)])
-  test_ranking_1 = [test_constraint, test_constraint]
-  words_and_rankings = [(test_word_1, test_ranking_1)]
+def single_seg(char: str):
+  return Sampleable([(char, 1.0)])
+
+
+if __name__ == "__main__":
+  s_z_seg = Sampleable([('s', 0.8), ('z', 0.2)])
+  k_seg, æ_seg, t_seg = list(map(single_seg, ['k', 'æ', 't']))
+  kæt_sz = [k_seg, æ_seg, t_seg, s_z_seg]
+
+  agree, ident_voi, star_d, star_d_sigma = 'Agree', '*Ident-IO(voi)', '*D', '*D_sigma'
+  english_voi = [agree, ident_voi, star_d, star_d_sigma]
+  non_english_voi = [ident_voi, agree, star_d, star_d_sigma]
+  voi_rankings = [(english_voi, 0.8), (non_english_voi, 0.2)]
+  kæt_sz_example = (kæt_sz, voi_rankings)
+
+  words_and_rankings = [kæt_sz_example]
 
   train_data = gen_all_examples(words_and_rankings)
   valid_data = gen_all_examples(words_and_rankings)
@@ -96,12 +105,12 @@ if __name__ == "__main__":
   BATCH_SIZE = 128
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
   train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
-      (train_data, valid_data, test_data), 
-      batch_size = BATCH_SIZE, 
-      device = device)
+      (train_data, valid_data, test_data),
+      batch_size=BATCH_SIZE,
+      device=device)
 
-    # segs = []
-    # seg = Segment([(1, 0.8), (2, 0.2)])
-    # for i in range(10):
-    #   segs.append(seg.sample())
-    # print(segs)
+  # segs = []
+  # seg = Sampleable([(1, 0.8), (2, 0.2)])
+  # for i in range(10):
+  #   segs.append(seg.sample())
+  # print(segs)
