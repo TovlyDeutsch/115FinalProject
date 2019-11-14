@@ -65,7 +65,7 @@ def gen_examples_for_input(
 def gen_all_examples(
         words_and_rankings: List[Tuple[List[Sampleable], List[Sampleable]]]):
   examples = []
-  min_number_of_examples = 10
+  min_number_of_examples = 20
   max_number_of_examples = 100
   for word, ranking in words_and_rankings:
     examples += gen_examples_for_input(word,
@@ -79,24 +79,42 @@ def seg(char: str):
   return Sampleable([(char, 1.0)])
 
 
+def u_seg(chars: List[str]):
+  return [(char, 1 / len(chars)) for char in chars]
+
+
 if __name__ == "__main__":
   # start English z suffix devoicing examples
+  consonant = u_seg(['k', 'd', 'h', 't', 'ʔ', 'w'])
+  vowel = u_seg(['æ', 'ɔ', 'ɛ', 'e', 'I'])
   s_z_seg = Sampleable([('s', 0.8), ('z', 0.2)])
-  cat_sz = [seg('k'), seg('æ'), seg('t'), s_z_seg]
-  dogz = [seg('d'), seg('ɔ'), seg('g'), seg('z')]
-  henz = [seg('h'), seg('ɛ'), seg('n'), seg('z')]
   f_v_seg = Sampleable([('f', 0.8), ('v', 0.2)])
-  twel_f_v_th = [seg('t'), seg('w'), seg('ɛ'), seg('l'), f_v_seg, seg('θ')]
-  eigth = [seg('ʔ'), seg('e'), seg('I'), seg('t'), seg('θ')]
-  tenth = [seg('t'), seg('ɛ'), seg('n'), seg('θ')]
-  end_voi_words = [cat_sz, dogz, henz, twel_f_v_th, eigth, tenth]
+
+  cat_sz = [consonant, vowel, seg('t'), s_z_seg]
+  gz = [consonant, vowel, seg('g'), seg('z')]
+  nz = [consonant, vowel, seg('n'), seg('z')]
+  five_f_v_th = [consonant, consonant, vowel, consonant, f_v_seg, seg('θ')]
+  four_f_v_th = [consonant, vowel, consonant, f_v_seg, seg('θ')]
+  two_vowel_t_theta = [consonant, vowel, vowel, seg('t'), seg('θ')]
+  one_vowel_t_theta = [consonant, vowel, seg('t'), seg('θ')]
+  n_theta = [consonant, vowel, seg('n'), seg('θ')]
+
+  end_voi_words = [
+      cat_sz,
+      gz,
+      nz,
+      five_f_v_th,
+      four_f_v_th,
+      two_vowel_t_theta,
+      one_vowel_t_theta,
+      n_theta]
 
   agree, ident_voi, star_d, star_d_sigma = 'Agree', '*Ident-IO(voi)', '*D', '*D_sigma'
   english_voi = [agree, ident_voi, star_d, star_d_sigma]
   non_english_voi = [ident_voi, agree, star_d, star_d_sigma]
   voi_rankings = [(english_voi, 0.8), (non_english_voi, 0.2)]
   end_voi_examples = [(word, voi_rankings) for word in end_voi_words]
-    # start English z suffix devoicing examples
+  # start English z suffix devoicing examples
 
   words_and_rankings = end_voi_examples  # TODO will add more concantenated here
 
