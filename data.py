@@ -66,7 +66,7 @@ def gen_all_examples(
         words_and_rankings: List[Tuple[List[Sampleable], List[Sampleable]]]):
   examples = []
   min_number_of_examples = 10
-  max_number_of_examples = 20
+  max_number_of_examples = 100
   for word, ranking in words_and_rankings:
     examples += gen_examples_for_input(word,
                                        ranking,
@@ -75,24 +75,33 @@ def gen_all_examples(
   return examples
 
 
-def single_seg(char: str):
+def seg(char: str):
   return Sampleable([(char, 1.0)])
 
 
 if __name__ == "__main__":
+  # start English z suffix devoicing examples
   s_z_seg = Sampleable([('s', 0.8), ('z', 0.2)])
-  k_seg, æ_seg, t_seg = list(map(single_seg, ['k', 'æ', 't']))
-  kæt_sz = [k_seg, æ_seg, t_seg, s_z_seg]
+  cat_sz = [seg('k'), seg('æ'), seg('t'), s_z_seg]
+  dogz = [seg('d'), seg('ɔ'), seg('g'), seg('z')]
+  henz = [seg('h'), seg('ɛ'), seg('n'), seg('z')]
+  f_v_seg = Sampleable([('f', 0.8), ('v', 0.2)])
+  twel_f_v_th = [seg('t'), seg('w'), seg('ɛ'), seg('l'), f_v_seg, seg('θ')]
+  eigth = [seg('ʔ'), seg('e'), seg('I'), seg('t'), seg('θ')]
+  tenth = [seg('t'), seg('ɛ'), seg('n'), seg('θ')]
+  end_voi_words = [cat_sz, dogz, henz, twel_f_v_th, eigth, tenth]
 
   agree, ident_voi, star_d, star_d_sigma = 'Agree', '*Ident-IO(voi)', '*D', '*D_sigma'
   english_voi = [agree, ident_voi, star_d, star_d_sigma]
   non_english_voi = [ident_voi, agree, star_d, star_d_sigma]
   voi_rankings = [(english_voi, 0.8), (non_english_voi, 0.2)]
-  kæt_sz_example = (kæt_sz, voi_rankings)
+  end_voi_examples = [(word, voi_rankings) for word in end_voi_words]
+    # start English z suffix devoicing examples
 
-  words_and_rankings = [kæt_sz_example]
+  words_and_rankings = end_voi_examples  # TODO will add more concantenated here
 
   train_data = gen_all_examples(words_and_rankings)
+  # TODO make these splits instead of the same
   valid_data = gen_all_examples(words_and_rankings)
   test_data = gen_all_examples(words_and_rankings)
   SRC = Field()
