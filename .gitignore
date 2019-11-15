@@ -1,3 +1,5 @@
 env
 pyrightconfig.json
 .vscode
+__pycache__
+*.pt
