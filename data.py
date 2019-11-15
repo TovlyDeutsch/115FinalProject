@@ -16,7 +16,7 @@ import spacy
 import random
 import math
 import time
-from abc import ABC, abstractmethod
+from abc import ABC
 
 
 class Sampleable(ABC):
@@ -94,58 +94,3 @@ def seg(char: str):
 
 def u_seg(chars: List[str]):
   return PossibleSegments([(char, 1 / len(chars)) for char in chars])
-
-
-if __name__ == "__main__":
-  # start English z suffix devoicing examples
-  consonant = u_seg(['k', 'd', 'h', 't', 'ʔ', 'w'])
-  vowel = u_seg(['æ', 'ɔ', 'ɛ', 'e', 'I'])
-  s_z_seg = PossibleSegments([('s', 0.8), ('z', 0.2)])
-  f_v_seg = PossibleSegments([('f', 0.8), ('v', 0.2)])
-
-  cat_sz = [consonant, vowel, seg('t'), s_z_seg]
-  gz = [consonant, vowel, seg('g'), seg('z')]
-  nz = [consonant, vowel, seg('n'), seg('z')]
-  five_f_v_th = [consonant, consonant, vowel, consonant, f_v_seg, seg('θ')]
-  four_f_v_th = [consonant, vowel, consonant, f_v_seg, seg('θ')]
-  two_vowel_t_theta = [consonant, vowel, vowel, seg('t'), seg('θ')]
-  one_vowel_t_theta = [consonant, vowel, seg('t'), seg('θ')]
-  n_theta = [consonant, vowel, seg('n'), seg('θ')]
-
-  end_voi_words = list(map(Word, [
-      cat_sz,
-      gz,
-      nz,
-      five_f_v_th,
-      four_f_v_th,
-      two_vowel_t_theta,
-      one_vowel_t_theta,
-      n_theta]))
-
-  agree, ident_voi, star_d, star_d_sigma = 'Agree', '*Ident-IO(voi)', '*D', '*D_sigma'
-  english_voi: Ranking = [agree, ident_voi, star_d, star_d_sigma]
-  non_english_voi: Ranking = [ident_voi, agree, star_d, star_d_sigma]
-  voi_rankings = PossibleRankings([(english_voi, 0.8), (non_english_voi, 0.2)])
-
-  end_voi_examples = [(word, voi_rankings) for word in end_voi_words]
-  # end English z suffix devoicing examples
-
-  words_and_rankings = end_voi_examples  # TODO will add more concantenated here
-
-  train_data = gen_all_examples(words_and_rankings)
-  # TODO make these splits instead of the same
-  valid_data = gen_all_examples(words_and_rankings)
-  test_data = gen_all_examples(words_and_rankings)
-  SRC = Field()
-  TRG = Field()
-
-  SRC.build_vocab(train_data)
-  TRG.build_vocab(train_data)
-  print(f"Unique tokens in source vocabulary: {len(SRC.vocab)}")
-
-  BATCH_SIZE = 128
-  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-  train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
-      (train_data, valid_data, test_data),
-      batch_size=BATCH_SIZE,
-      device=device)
