@@ -8,7 +8,8 @@ from model import Encoder, Decoder, Seq2Seq
 from ot_dataset import OTDataset
 import time
 import math
-import copy
+import random
+import argparse
 
 
 def train(model, iterator, optimizer, criterion, clip):
@@ -88,17 +89,37 @@ def epoch_time(start_time, end_time):
 
 if __name__ == "__main__":
   from examples import end_voi_examples
+  parser = argparse.ArgumentParser(description='Process some integers.')
+  parser.add_argument('--shuffle', '-s', action='store_true',
+                      help='whether to shuffle the dataset')
+  parser.add_argument(
+      '--epochs',
+      '-e',
+      action='store',
+      type=int,
+      default=5,
+      help='number of epochs')
+
+  args = parser.parse_args()
+
+  torch.cuda.empty_cache()
+
   SRC = Field()
   TRG = Field()
   words_and_rankings = end_voi_examples  # TODO will add more concantenated here
   tupled_examples = gen_all_examples(words_and_rankings)
+  if args.shuffle:
+    print('shuffling')
+    random.Random(0).shuffle(tupled_examples)  # TODO make shuffling a param
+  valid_split = int(len(tupled_examples) * 0.8)
+  test_split = int(len(tupled_examples) * 0.9)
   train_data = OTDataset(
-      tupled_examples, fields=(SRC, TRG))
+      tupled_examples[:valid_split], fields=(SRC, TRG))
   # TODO make these splits instead of the same
   valid_data = OTDataset(
-      tupled_examples, fields=(SRC, TRG))
+      tupled_examples[valid_split:test_split], fields=(SRC, TRG))
   test_data = OTDataset(
-      tupled_examples, fields=(SRC, TRG))
+      tupled_examples[test_split:], fields=(SRC, TRG))
 
   SRC.build_vocab(train_data)
   TRG.build_vocab(train_data)
@@ -142,7 +163,7 @@ if __name__ == "__main__":
 
   criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
 
-  N_EPOCHS = 10
+  N_EPOCHS = args.epochs
   CLIP = 1
 
   best_valid_loss = float('inf')
@@ -167,3 +188,12 @@ if __name__ == "__main__":
         f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
     print(
         f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
+
+  model.load_state_dict(torch.load('tut1-model.pt'))
+
+  test_loss = evaluate(model, test_iterator, criterion)
+
+  print(
+      f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
+
+  torch.cuda.empty_cache()
