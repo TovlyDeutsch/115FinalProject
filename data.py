@@ -49,7 +49,7 @@ class Word():
   def gen_sample_output(self) -> List[str]:
     """This generates multiple intances of a word/input seperated by <sep>"""
     src = ['<sos>']
-    number_of_outputs = randint(5, 15)  # TODO remove magic numbers here
+    number_of_outputs = randint(10, 50)  # TODO remove magic numbers here
     for i in range(number_of_outputs):
       for seg in self.segments:
         src.append(seg.sample())
@@ -72,8 +72,8 @@ def gen_examples_for_word_and_rankings(
 def gen_all_examples(
         words_and_rankings: List[Tuple[Word, PossibleRankings]]) -> List[Tuple[List[str], Ranking]]:
   examples = []
-  min_number_of_examples = 20  # TODO maybe make this command line arg
-  max_number_of_examples = 100
+  min_number_of_examples = 100  # TODO maybe make this command line arg and/or param
+  max_number_of_examples = 1000
   for word, rankings in words_and_rankings:
     examples += gen_examples_for_word_and_rankings(word,
                                                    rankings,
