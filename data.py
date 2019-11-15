@@ -8,24 +8,22 @@ import torch.optim as optim
 from random import randint
 import numpy as np
 
-from torchtext.datasets import TranslationDataset, Multi30k
+from torchtext.datasets import TranslationDataset
 from torchtext.data import Field, BucketIterator
 
-import spacy
-
-import random
-import math
-import time
 from abc import ABC
 
+T = TypeVar('T')
 
-class Sampleable(ABC):
-  def __init__(self, choices: List[Tuple[Any, float]]):
+
+class Sampleable(ABC, Generic[T]):
+  def __init__(self, choices: List[Tuple[T, float]]):
     self.possible_segments = [x[0] for x in choices]
     self.probs = [x[1] for x in choices]
 
-  def sample(self) -> str:
+  def sample(self) -> T:
     indicies = [x for x in range(len(self.possible_segments))]
+    # index storage avoids np.random.choice's inability to work with 2d lists
     chosen_index = np.random.choice(indicies, 1, p=self.probs)[0]
     return self.possible_segments[chosen_index]
 
@@ -48,7 +46,7 @@ class Word():
   def __init__(self, segments: List[PossibleSegments]):
     self.segments = segments
 
-  def gen_sample_output(self):
+  def gen_sample_output(self) -> List[str]:
     """This generates multiple intances of a word/input seperated by <sep>"""
     src = ['<sos>']
     number_of_outputs = randint(5, 15)  # TODO remove magic numbers here
@@ -60,25 +58,19 @@ class Word():
     return src
 
 
-class Example():
-  def __init__(self, src, trg):
-    self.src = src
-    self.trg = trg
-
-
 def gen_examples_for_word_and_rankings(
         word: Word,
         rankings: PossibleRankings,
         min_num: int,
-        max_num: int):
+        max_num: int) -> List[Tuple[List[str], Ranking]]:
   # TODO maybe change from uniform random to dome dist weight toward larger
   num_examples = randint(min_num, max_num)
-  return [Example(word.gen_sample_output(), rankings.sample())
+  return [(word.gen_sample_output(), rankings.sample())
           for i in range(num_examples)]
 
 
 def gen_all_examples(
-        words_and_rankings: List[Tuple[Word, PossibleRankings]]):
+        words_and_rankings: List[Tuple[Word, PossibleRankings]]) -> List[Tuple[List[str], Ranking]]:
   examples = []
   min_number_of_examples = 20  # TODO maybe make this command line arg
   max_number_of_examples = 100

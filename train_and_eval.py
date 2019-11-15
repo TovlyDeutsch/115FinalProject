@@ -5,6 +5,10 @@ import torch.nn as nn
 import torch.optim as optim
 from torchtext.data import Field, BucketIterator
 from model import Encoder, Decoder, Seq2Seq
+from ot_dataset import OTDataset
+import time
+import math
+import copy
 
 
 def train(model, iterator, optimizer, criterion, clip):
@@ -84,15 +88,17 @@ def epoch_time(start_time, end_time):
 
 if __name__ == "__main__":
   from examples import end_voi_examples
-
-  words_and_rankings = end_voi_examples  # TODO will add more concantenated here
-
-  train_data = gen_all_examples(words_and_rankings)
-  # TODO make these splits instead of the same
-  valid_data = gen_all_examples(words_and_rankings)
-  test_data = gen_all_examples(words_and_rankings)
   SRC = Field()
   TRG = Field()
+  words_and_rankings = end_voi_examples  # TODO will add more concantenated here
+  tupled_examples = gen_all_examples(words_and_rankings)
+  train_data = OTDataset(
+      tupled_examples, fields=(SRC, TRG))
+  # TODO make these splits instead of the same
+  valid_data = OTDataset(
+      tupled_examples, fields=(SRC, TRG))
+  test_data = OTDataset(
+      tupled_examples, fields=(SRC, TRG))
 
   SRC.build_vocab(train_data)
   TRG.build_vocab(train_data)
