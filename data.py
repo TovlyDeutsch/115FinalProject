@@ -25,7 +25,9 @@ class Sampleable(ABC):
     self.probs = [x[1] for x in choices]
 
   def sample(self) -> str:
-    return np.random.choice(self.possible_segments, 1, p=self.probs)[0]
+    indicies = [x for x in range(len(self.possible_segments))]
+    chosen_index = np.random.choice(indicies, 1, p=self.probs)[0]
+    return self.possible_segments[chosen_index]
 
 
 Constraint = str
