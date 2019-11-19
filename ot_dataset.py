@@ -24,8 +24,3 @@ class OTDataset(TranslationDataset):
           [src_words, trg_ranking], fields))
 
     super(TranslationDataset, self).__init__(examples, fields, **kwargs)
-
-  # TODO implement custom splitting logic (e.g. keep specific example types only in test) a la
-  # https://github.com/pytorch/text/blob/3271dc87d1157d9db618611558d5b2efe6c21268/torchtext/datasets/translation.py#L86
-  # and
-  # https://github.com/pytorch/text/blob/3271dc87d1157d9db618611558d5b2efe6c21268/torchtext/data/dataset.py#L86

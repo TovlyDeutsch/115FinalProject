@@ -5,7 +5,7 @@ from functools import partial, reduce
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from random import randint
+import random
 import numpy as np
 
 from torchtext.datasets import TranslationDataset
@@ -49,7 +49,8 @@ class Word():
   def gen_sample_output(self) -> List[str]:
     """This generates multiple intances of a word/input seperated by <sep>"""
     src = ['<sos>']
-    number_of_outputs = randint(10, 50)  # TODO remove magic numbers here
+    number_of_outputs = random.Random(0).randint(
+        10, 50)  # TODO remove magic numbers here
     for i in range(number_of_outputs):
       for seg in self.segments:
         src.append(seg.sample())
@@ -64,7 +65,7 @@ def gen_examples_for_word_and_rankings(
         min_num: int,
         max_num: int) -> List[Tuple[List[str], Ranking]]:
   # TODO maybe change from uniform random to dome dist weight toward larger
-  num_examples = randint(min_num, max_num)
+  num_examples = random.Random(0).randint(min_num, max_num)
   return [(word.gen_sample_output(), rankings.sample())
           for i in range(num_examples)]
 
@@ -72,8 +73,8 @@ def gen_examples_for_word_and_rankings(
 def gen_all_examples(
         words_and_rankings: List[Tuple[Word, PossibleRankings]]) -> List[Tuple[List[str], Ranking]]:
   examples = []
-  min_number_of_examples = 100  # TODO maybe make this command line arg and/or param
-  max_number_of_examples = 1000
+  min_number_of_examples = 10  # TODO maybe make this command line arg and/or param
+  max_number_of_examples = 100
   for word, rankings in words_and_rankings:
     examples += gen_examples_for_word_and_rankings(word,
                                                    rankings,

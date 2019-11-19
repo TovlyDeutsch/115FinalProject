@@ -2,6 +2,7 @@ from torch import nn
 import torch
 import random
 # Most of this code was written by Ben Trevett
+# TODO add license for this
 # (https://github.com/bentrevett/pytorch-seq2seq/blob/master/1%20-%20Sequence%20to%20Sequence%20Learning%20with%20Neural%20Networks.ipynb)
 
 
