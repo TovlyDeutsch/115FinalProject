@@ -31,17 +31,18 @@ end_voi_words = list(map(Word, [
     two_vowel_t_theta,
     one_vowel_t_theta,
     n_theta]))
-
+sos = '<sos>'  # TODO make this an automatic prepend for rankings
+eos = '<eos>'  # TODO make this an automatic apend for rankings
 agree, ident_voi, star_d, star_d_sigma = 'Agree', '*Ident-IO(voi)', '*D', '*D_sigma'
-english_voi: Ranking = [agree, ident_voi, star_d, star_d_sigma]
-non_english_voi: Ranking = [ident_voi, agree, star_d, star_d_sigma]
+english_voi: Ranking = [sos, agree, ident_voi, star_d, star_d_sigma, eos]
+non_english_voi: Ranking = [sos, ident_voi, agree, star_d, star_d_sigma, eos]
 voi_rankings = PossibleRankings([(english_voi, 0.8), (non_english_voi, 0.2)])
 
 end_voi_examples = [(word, voi_rankings) for word in end_voi_words]
 # end English z suffix devoicing examples
 
 # start hypothetical simple
-star_top_voi: Ranking = [star_d, star_d_sigma, ident_voi]
+star_top_voi: Ranking = [sos, star_d, star_d_sigma, ident_voi, eos]
 voi_voiceless_rankings = PossibleRankings(
     [(english_voi, 0.5), (star_top_voi, 0.5)])
 
