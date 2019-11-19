@@ -49,7 +49,7 @@ def train(model, iterator, optimizer, criterion, clip):
   return epoch_loss / len(iterator)
 
 
-def evaluate(model, iterator, criterion):
+def evaluate(model, iterator, criterion, TRG):
 
   model.eval()
 
@@ -66,6 +66,9 @@ def evaluate(model, iterator, criterion):
 
       # trg = [trg sent len, batch size]
       # output = [trg sent len, batch size, output dim]
+      if i % 15 == 0:
+        print(list(map(lambda x: TRG.vocab.itos[x], torch.argmax(
+            output[:, 0, :], 1).tolist())))
 
       output = output[1:].view(-1, output.shape[-1])
       trg = trg[1:].view(-1)
@@ -87,11 +90,13 @@ def epoch_time(start_time, end_time):
   return elapsed_mins, elapsed_secs
 
 
+# TODO consider moving main part to seperate file
 if __name__ == "__main__":
-  from examples import end_voi_examples
-  parser = argparse.ArgumentParser(description='Process some integers.')
-  parser.add_argument('--shuffle', '-s', action='store_true',
-                      help='whether to shuffle the dataset')
+  from examples import end_voi_examples, hypo_voi_examples
+  parser = argparse.ArgumentParser(
+      description='Train and evaluate an OT constraint learner.')
+  parser.add_argument('--unshuffle', '-u', action='store_false',
+                      help='whether to not shuffle the entire dataset')
   parser.add_argument(
       '--epochs',
       '-e',
@@ -106,13 +111,14 @@ if __name__ == "__main__":
 
   SRC = Field()
   TRG = Field()
-  words_and_rankings = end_voi_examples  # TODO will add more concantenated here
+  words_and_rankings = end_voi_examples + hypo_voi_examples
   tupled_examples = gen_all_examples(words_and_rankings)
-  if args.shuffle:
+  tupled_hypo_examples = gen_all_examples(hypo_voi_examples)
+  if not args.unshuffle:
     print('shuffling')
     random.Random(0).shuffle(tupled_examples)  # TODO make shuffling a param
-  valid_split = int(len(tupled_examples) * 0.8)
-  test_split = int(len(tupled_examples) * 0.9)
+  valid_split = int(len(tupled_examples) * 0.5)
+  test_split = int(len(tupled_examples) * 0.75)
   train_data = OTDataset(
       tupled_examples[:valid_split], fields=(SRC, TRG))
   # TODO make these splits instead of the same
@@ -120,6 +126,9 @@ if __name__ == "__main__":
       tupled_examples[valid_split:test_split], fields=(SRC, TRG))
   test_data = OTDataset(
       tupled_examples[test_split:], fields=(SRC, TRG))
+  # test_data = OTDataset(
+  # tupled_examples[test_split:] + (tupled_hypo_examples * 1000),
+  # fields=(SRC, TRG))
 
   SRC.build_vocab(train_data)
   TRG.build_vocab(train_data)
@@ -173,7 +182,7 @@ if __name__ == "__main__":
     start_time = time.time()
 
     train_loss = train(model, train_iterator, optimizer, criterion, CLIP)
-    valid_loss = evaluate(model, valid_iterator, criterion)
+    valid_loss = evaluate(model, valid_iterator, criterion, TRG)
 
     end_time = time.time()
 
@@ -191,7 +200,7 @@ if __name__ == "__main__":
 
   model.load_state_dict(torch.load('tut1-model.pt'))
 
-  test_loss = evaluate(model, test_iterator, criterion)
+  test_loss = evaluate(model, test_iterator, criterion, TRG)
 
   print(
       f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
