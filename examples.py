@@ -64,9 +64,8 @@ for word in end_voi_words:
 # end English z suffix devoicing examples
 
 # start hypothetical simple examples
-faith_only_voi: Ranking = [sos, ident_voi, eos]
-faith_voi: Ranking = [sos, ident_voi, star_d, eos]
-star_top_voi: Ranking = [sos, star_d, ident_voi, eos]
+faith_voi: Ranking = [sos, ident_voi, agree, star_d, star_d_sigma, eos]
+star_top_voi: Ranking = [sos, star_d, agree, ident_voi, star_d_sigma, eos]
 
 voice_obstruent = u_seg(voice_obstruents)
 voiceless_obstruent = u_seg(voiceless_obstruents)
@@ -87,36 +86,44 @@ hypo_voi_examples = [
     (vc_voiceless,
         single_ranking(star_top_voi))]
 
-agree_above_star: Ranking = [sos, agree, star_d, eos]
-star_above_agree: Ranking = [sos, star_d, agree, eos]
+agree_above: Ranking = [sos, agree, ident_voi, star_d, star_d_sigma, eos]
+star_above: Ranking = [sos, star_d, agree, ident_voi, star_d_sigma, eos]
 
-ccv_agree = Word([voice_obstruent, voice_obstruent, vowel])
+
+# UR is voice, voiceless, vowel
+# ccv_agree = Word([voice_obstruent, voice_obstruent, vowel])
 ccv_dis1 = Word([voice_obstruent, voiceless_obstruent, vowel])
-ccv_dis2 = Word([voiceless_obstruent, voice_obstruent, vowel])
+# ccv_dis2 = Word([voiceless_obstruent, voice_obstruent, vowel])
 ccv_agree_voiceless = Word([voiceless_obstruent, voiceless_obstruent, vowel])
 
 star_agree_examples = [
-    (ccv_agree,
-     single_ranking(agree_above_star)),
     (ccv_dis1,
-        single_ranking(star_above_agree)),
-    (ccv_dis2,
-        single_ranking(star_above_agree)),
+        single_ranking(faith_voi)),
     (ccv_agree_voiceless,
-        single_ranking(faith_only_voi))]
+        single_ranking(star_above))]
 
-vccv_agree = Word([vowel, voice_obstruent, voice_obstruent, vowel])
+# UR is voice, voiceless, vowel, voice
+ccvc_dis1 = Word(
+    [voice_obstruent, voiceless_obstruent, vowel, voice_obstruent])
+# ccv_dis2 = Word([voiceless_obstruent, voice_obstruent, vowel])
+ccvc_agree_voiceless = Word(
+    [voiceless_obstruent, voiceless_obstruent, vowel, voiceless_obstruent])
+
+star_agree_double_c_examples = [
+    (ccv_dis1,
+        single_ranking(faith_voi)),
+    (ccv_agree_voiceless,
+        single_ranking(star_above))]
+
+# UR is vowel, voice, voiceless, vowel
+# vccv_agree = Word([vowel, voice_obstruent, voice_obstruent, vowel])
 vccv_dis1 = Word([vowel, voice_obstruent, voiceless_obstruent, vowel])
-vccv_dis2 = Word([vowel, voiceless_obstruent, voice_obstruent, vowel])
+# vccv_dis2 = Word([vowel, voiceless_obstruent, voice_obstruent, vowel])
 vccv_agree_voiceless = Word(
     [vowel, voiceless_obstruent, voiceless_obstruent, vowel])
 
 star_agree_double_vowel_examples = [
-    (vccv_agree,
-     single_ranking(agree_above_star)),
     (vccv_dis1,
-        single_ranking(star_above_agree)),
-    (vccv_dis2,
-        single_ranking(star_above_agree)),
+        single_ranking(faith_voi)),
     (vccv_agree_voiceless,
-        single_ranking(faith_only_voi))]
+        single_ranking(star_above))]

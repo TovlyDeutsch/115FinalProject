@@ -49,7 +49,7 @@ def train(model, iterator, optimizer, criterion, clip):
   return epoch_loss / len(iterator)
 
 
-def evaluate(model, iterator, criterion, TRG):
+def evaluate(model, iterator, criterion, TRG, SRC, print_results=False):
 
   model.eval()
 
@@ -72,7 +72,8 @@ def evaluate(model, iterator, criterion, TRG):
       #       output[:, i, :], 1).tolist()))
       #   if readable_output == grail:
       #     print('found grail!')
-      if i % 50 == 0:
+      if print_results and i % 10 == 0:
+        print(list(map(lambda x: SRC.vocab.itos[x], src[:, 0].tolist())))
         print(list(map(lambda x: TRG.vocab.itos[x], torch.argmax(
             output[:, 0, :], 1).tolist())))
 
@@ -98,7 +99,7 @@ def epoch_time(start_time, end_time):
 
 # TODO consider moving main part to seperate file
 if __name__ == "__main__":
-  from examples import end_voi_examples, hypo_voi_examples, star_agree_examples, star_agree_double_vowel_examples
+  from examples import end_voi_examples, hypo_voi_examples, star_agree_examples, star_agree_double_vowel_examples, star_agree_double_c_examples
   parser = argparse.ArgumentParser(
       description='Train and evaluate an OT constraint learner.')
   parser.add_argument('--unshuffle', '-u', action='store_true',
@@ -117,8 +118,9 @@ if __name__ == "__main__":
 
   SRC = Field()
   TRG = Field()
-  words_and_rankings = end_voi_examples + \
-      hypo_voi_examples + star_agree_examples
+  # words_and_rankings = end_voi_examples
+  words_and_rankings = end_voi_examples + hypo_voi_examples + star_agree_examples + \
+      star_agree_double_c_examples + star_agree_double_vowel_examples
   tupled_examples = gen_all_examples(words_and_rankings)
   tupled_star_double_agree_examples = gen_all_examples(
       star_agree_double_vowel_examples)
@@ -132,9 +134,11 @@ if __name__ == "__main__":
       tupled_examples[:valid_split], fields=(SRC, TRG))
   # TODO make these splits instead of the same
   valid_data = OTDataset(
-      tupled_examples[valid_split:test_split] + tupled_star_double_agree_examples, fields=(SRC, TRG))
+      tupled_examples[valid_split:test_split], fields=(SRC, TRG))
   test_data = OTDataset(
       tupled_examples[test_split:], fields=(SRC, TRG))
+  # test_data = OTDataset(
+  #     tupled_star_double_agree_examples, fields=(SRC, TRG))
   print(f'train size: {len(train_data)}')
   print(f'validation size: {len(valid_data)}')
   print(f'test size: {len(test_data)}')
@@ -195,7 +199,7 @@ if __name__ == "__main__":
     start_time = time.time()
 
     train_loss = train(model, train_iterator, optimizer, criterion, CLIP)
-    valid_loss = evaluate(model, valid_iterator, criterion, TRG)
+    valid_loss = evaluate(model, valid_iterator, criterion, TRG, SRC)
 
     end_time = time.time()
 
@@ -213,7 +217,12 @@ if __name__ == "__main__":
 
   model.load_state_dict(torch.load('tut1-model.pt'))
 
-  test_loss = evaluate(model, test_iterator, criterion, TRG)
+  test_loss = evaluate(
+      model,
+      test_iterator,
+      criterion,
+      TRG, SRC,
+      print_results=True)
 
   print(
       f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')

@@ -7,5 +7,6 @@ voiced = vowels.union(voiced_consonants)
 voiceless_consonants = consonants - voiced_consonants
 sonorants = vowels.union(set(('l', 'n', 'w')))
 obstruents = phones - sonorants
-voice_obstruents = voiced.union(obstruents)
-voiceless_obstruents = voiceless_consonants.union(obstruents)
+voice_obstruents = obstruents - voiceless_consonants
+voiceless_obstruents = obstruents - voice_obstruents
+print(voiceless_obstruents)
