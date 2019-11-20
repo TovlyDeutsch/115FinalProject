@@ -66,7 +66,13 @@ def evaluate(model, iterator, criterion, TRG):
 
       # trg = [trg sent len, batch size]
       # output = [trg sent len, batch size, output dim]
-      if i % 15 == 0:
+      grail = ['<unk>', '*Ident-IO(voi)', 'Agree', '*D', '*D_sigma', '<eos>']
+      # for i in range(output.shape[1]):
+      #   readable_output = list(map(lambda x: TRG.vocab.itos[x], torch.argmax(
+      #       output[:, i, :], 1).tolist()))
+      #   if readable_output == grail:
+      #     print('found grail!')
+      if i % 50 == 0:
         print(list(map(lambda x: TRG.vocab.itos[x], torch.argmax(
             output[:, 0, :], 1).tolist())))
 
@@ -92,10 +98,10 @@ def epoch_time(start_time, end_time):
 
 # TODO consider moving main part to seperate file
 if __name__ == "__main__":
-  from examples import end_voi_examples, hypo_voi_examples
+  from examples import end_voi_examples, hypo_voi_examples, star_agree_examples, star_agree_double_vowel_examples
   parser = argparse.ArgumentParser(
       description='Train and evaluate an OT constraint learner.')
-  parser.add_argument('--unshuffle', '-u', action='store_false',
+  parser.add_argument('--unshuffle', '-u', action='store_true',
                       help='whether to not shuffle the entire dataset')
   parser.add_argument(
       '--epochs',
@@ -111,9 +117,12 @@ if __name__ == "__main__":
 
   SRC = Field()
   TRG = Field()
-  words_and_rankings = end_voi_examples + hypo_voi_examples
+  words_and_rankings = end_voi_examples + \
+      hypo_voi_examples + star_agree_examples
   tupled_examples = gen_all_examples(words_and_rankings)
-  tupled_hypo_examples = gen_all_examples(hypo_voi_examples)
+  tupled_star_double_agree_examples = gen_all_examples(
+      star_agree_double_vowel_examples)
+  # tupled_hypo_examples = gen_all_examples(hypo_voi_examples)
   if not args.unshuffle:
     print('shuffling')
     random.Random(0).shuffle(tupled_examples)  # TODO make shuffling a param
@@ -123,9 +132,12 @@ if __name__ == "__main__":
       tupled_examples[:valid_split], fields=(SRC, TRG))
   # TODO make these splits instead of the same
   valid_data = OTDataset(
-      tupled_examples[valid_split:test_split], fields=(SRC, TRG))
+      tupled_examples[valid_split:test_split] + tupled_star_double_agree_examples, fields=(SRC, TRG))
   test_data = OTDataset(
       tupled_examples[test_split:], fields=(SRC, TRG))
+  print(f'train size: {len(train_data)}')
+  print(f'validation size: {len(valid_data)}')
+  print(f'test size: {len(test_data)}')
   # test_data = OTDataset(
   # tupled_examples[test_split:] + (tupled_hypo_examples * 1000),
   # fields=(SRC, TRG))
@@ -133,6 +145,7 @@ if __name__ == "__main__":
   SRC.build_vocab(train_data)
   TRG.build_vocab(train_data)
   print(f"Unique tokens in source vocabulary: {len(SRC.vocab)}")
+  print(f"Unique tokens in target vocabulary: {len(TRG.vocab)}")
 
   BATCH_SIZE = 128
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
