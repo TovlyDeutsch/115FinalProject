@@ -10,6 +10,7 @@ import time
 import math
 import random
 import argparse
+from beam import beam_search
 
 
 def train(model, iterator, optimizer, criterion, clip):
@@ -63,6 +64,7 @@ def evaluate(model, iterator, criterion, TRG, SRC, print_results=False):
       trg = batch.trg
 
       output = model(src, trg, 0)  # turn off teacher forcing
+      beam_search(output, TRG)
 
       # trg = [trg sent len, batch size]
       # output = [trg sent len, batch size, output dim]
