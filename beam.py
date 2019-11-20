@@ -3,6 +3,9 @@ from itertools import groupby
 import math
 import numpy as np
 
+# Taken from Vinayak A.
+# (https://stackoverflow.com/questions/51422776/how-do-i-add-ctc-beam-search-decoder-in-crnn-model-pytorch)
+
 # TODO make beam_k cmd line arg
 
 
