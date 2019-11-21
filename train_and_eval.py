@@ -68,13 +68,13 @@ def evaluate(model, iterator, criterion, TRG, SRC, print_results=False):
 
       # trg = [trg sent len, batch size]
       # output = [trg sent len, batch size, output dim]
-      grail = ['<unk>', '*Ident-IO(voi)', 'Agree', '*D', '*D_sigma', '<eos>']
+      # grail = ['<unk>', '*Ident-IO(voi)', 'Agree', '*D', '*D_sigma', '<eos>']
       # for i in range(output.shape[1]):
       #   readable_output = list(map(lambda x: TRG.vocab.itos[x], torch.argmax(
       #       output[:, i, :], 1).tolist()))
       #   if readable_output == grail:
       #     print('found grail!')
-      if print_results and i % 10 == 0:
+      if print_results and i % random.randint(0, 10) == 0:
         print(list(map(lambda x: SRC.vocab.itos[x], src[:, 0].tolist())))
         print(list(map(lambda x: TRG.vocab.itos[x], torch.argmax(
             output[:, 0, :], 1).tolist())))
@@ -137,6 +137,12 @@ if __name__ == "__main__":
       type=int,
       default=100,
       help='maximum number of examples per word ranking pair')
+  parser.add_argument(
+      '--test', '-t',
+      action='store',
+      type=str,
+      default='all',
+      help='what test set should be composed of')
 
   args = parser.parse_args()
 
@@ -144,6 +150,7 @@ if __name__ == "__main__":
 
   SRC = Field()
   TRG = Field()
+  def ot_dataset(examples): return OTDataset(examples, fields=(SRC, TRG))
 
   def gen_examples_with_params(words_and_rankings):
     return gen_all_examples(words_and_rankings,
@@ -151,12 +158,16 @@ if __name__ == "__main__":
                             args.max_pair_examples,
                             args.min_word_examples,
                             args.max_word_examples)
-  # words_and_rankings = end_voi_examples
-  words_and_rankings = end_voi_examples + hypo_voi_examples + star_agree_examples + \
-      star_agree_double_c_examples + star_agree_double_vowel_examples
+
+  if args.test == 'all':
+    words_and_rankings = end_voi_examples + hypo_voi_examples + star_agree_examples + \
+        star_agree_double_c_examples + star_agree_double_vowel_examples
+  elif args.test == 'double_vowel':
+    words_and_rankings = end_voi_examples + hypo_voi_examples + \
+        star_agree_examples + star_agree_double_c_examples
+  else:
+    raise(NotImplementedError(f'Test set {args.test} not implemented'))
   tupled_examples = gen_examples_with_params(words_and_rankings)
-  tupled_star_double_agree_examples = gen_examples_with_params(
-      star_agree_double_vowel_examples)
   # tupled_hypo_examples = gen_all_examples(hypo_voi_examples)
   if not args.unshuffle:
     print('shuffling')
@@ -165,19 +176,19 @@ if __name__ == "__main__":
   test_split = int(len(tupled_examples) * 0.75)
   train_data = OTDataset(
       tupled_examples[:valid_split], fields=(SRC, TRG))
-  # TODO make these splits instead of the same
   valid_data = OTDataset(
       tupled_examples[valid_split:test_split], fields=(SRC, TRG))
-  test_data = OTDataset(
-      tupled_examples[test_split:], fields=(SRC, TRG))
-  # test_data = OTDataset(
-  #     tupled_star_double_agree_examples, fields=(SRC, TRG))
+  if args.test == 'all':
+    test_data = ot_dataset(tupled_examples[test_split:])
+  elif args.test == 'double_vowel':
+    test_data = ot_dataset(gen_examples_with_params(
+        star_agree_double_vowel_examples))
+  else:
+    raise(NotImplementedError(f'Test set {args.test} not implemented'))
+
   print(f'train size: {len(train_data)}')
   print(f'validation size: {len(valid_data)}')
   print(f'test size: {len(test_data)}')
-  # test_data = OTDataset(
-  # tupled_examples[test_split:] + (tupled_hypo_examples * 1000),
-  # fields=(SRC, TRG))
 
   SRC.build_vocab(train_data)
   TRG.build_vocab(train_data)
