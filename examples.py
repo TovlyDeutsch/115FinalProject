@@ -11,11 +11,12 @@ vowel = u_seg(vowels)
 
 cats = [consonant, vowel, seg('t'), seg('s')]
 catz = [consonant, vowel, seg('t'), seg('z')]
+# UR is CVTD
 cats1 = [consonant, vowel, voiceless_obstruent, voiceless_obstruent]
 cats2 = [consonant, vowel, voiceless_obstruent, voiceless_obstruent]
 cats3 = [consonant, vowel, voiceless_obstruent, voiceless_obstruent]
-cats4 = [consonant, vowel, voice_obstruent, voice_obstruent]
-cats5 = [consonant, vowel, voice_obstruent, voice_obstruent]
+cats4 = [consonant, vowel, voiceless_obstruent, voice_obstruent]
+cats5 = [consonant, vowel, voiceless_obstruent, voice_obstruent]
 
 gz = [consonant, vowel, seg('g'), seg('z')]
 nz = [consonant, vowel, seg('n'), seg('z')]
