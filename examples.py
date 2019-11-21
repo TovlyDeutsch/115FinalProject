@@ -55,7 +55,6 @@ for word in end_voi_words:
     if word.segments[-1].all_voiced() == word.segments[-2].all_voiced():
       ranking = single_ranking(english_voi)
     else:
-      print('chose faith voice')
       ranking = single_ranking(faith_voi)
   else:
     ranking = single_ranking(faith_voi)
