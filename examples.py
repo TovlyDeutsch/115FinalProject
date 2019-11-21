@@ -4,11 +4,19 @@ from segments import voiced_consonants, voiceless_consonants, consonants, vowels
 consonant = u_seg(consonants)
 voiceless_consonant = u_seg(voiceless_consonants)
 voiced_consonant = u_seg(voiced_consonants)
+voice_obstruent = u_seg(voice_obstruents)
+voiceless_obstruent = u_seg(voiceless_obstruents)
 vowel = u_seg(vowels)
 # TODO consider making these proportions random variables
 
 cats = [consonant, vowel, seg('t'), seg('s')]
 catz = [consonant, vowel, seg('t'), seg('z')]
+cats1 = [consonant, vowel, voiceless_obstruent, voiceless_obstruent]
+cats2 = [consonant, vowel, voiceless_obstruent, voiceless_obstruent]
+cats3 = [consonant, vowel, voiceless_obstruent, voiceless_obstruent]
+cats4 = [consonant, vowel, voice_obstruent, voice_obstruent]
+cats5 = [consonant, vowel, voice_obstruent, voice_obstruent]
+
 gz = [consonant, vowel, seg('g'), seg('z')]
 nz = [consonant, vowel, seg('n'), seg('z')]
 five_v_th = [
@@ -34,6 +42,7 @@ n_theta = [consonant, vowel, seg('n'), seg('θ')]
 end_voi_words = list(map(Word, [
     cats,
     catz,
+    cats1, cats2, cats3, cats4, cats5,
     gz,
     nz,
     five_f_th,
@@ -64,16 +73,16 @@ for word in end_voi_words:
 
 # start hypothetical simple examples
 faith_voi: Ranking = [sos, ident_voi, agree, star_d, star_d_sigma, eos]
-star_top_voi: Ranking = [sos, star_d, agree, ident_voi, star_d_sigma, eos]
-
-voice_obstruent = u_seg(voice_obstruents)
-voiceless_obstruent = u_seg(voiceless_obstruents)
+agree_above: Ranking = [sos, agree, ident_voi, star_d, star_d_sigma, eos]
+star_above: Ranking = [sos, star_d, agree, ident_voi, star_d_sigma, eos]
 
 cv_voice = Word([voice_obstruent, vowel])
 vc_voice = Word([vowel, voice_obstruent])
 
 cv_voiceless = Word([voiceless_obstruent, vowel])
+cv_voiceless2 = Word([voiceless_obstruent, vowel])
 vc_voiceless = Word([vowel, voiceless_obstruent])
+vc_voiceless2 = Word([vowel, voiceless_obstruent])
 
 hypo_voi_examples = [
     (cv_voice,
@@ -81,12 +90,13 @@ hypo_voi_examples = [
     (vc_voice,
         single_ranking(faith_voi)),
     (cv_voiceless,
-        single_ranking(star_top_voi)),
+        single_ranking(star_above)),
+    (cv_voiceless2,
+        single_ranking(star_above)),
     (vc_voiceless,
-        single_ranking(star_top_voi))]
-
-agree_above: Ranking = [sos, agree, ident_voi, star_d, star_d_sigma, eos]
-star_above: Ranking = [sos, star_d, agree, ident_voi, star_d_sigma, eos]
+        single_ranking(star_above)),
+    (vc_voiceless2,
+        single_ranking(star_above))]
 
 
 # UR is voice, voiceless, vowel
@@ -94,12 +104,19 @@ star_above: Ranking = [sos, star_d, agree, ident_voi, star_d_sigma, eos]
 ccv_dis1 = Word([voice_obstruent, voiceless_obstruent, vowel])
 # ccv_dis2 = Word([voiceless_obstruent, voice_obstruent, vowel])
 ccv_agree_voiceless = Word([voiceless_obstruent, voiceless_obstruent, vowel])
+ccv_agree_voiceless2 = Word([voiceless_obstruent, voiceless_obstruent, vowel])
+ccv_agree_voiceless3 = Word([voiceless_obstruent, voiceless_obstruent, vowel])
 
 star_agree_examples = [
     (ccv_dis1,
         single_ranking(faith_voi)),
     (ccv_agree_voiceless,
-        single_ranking(star_above))]
+        single_ranking(star_above)),
+    (ccv_agree_voiceless2,
+        single_ranking(star_above)),
+    (ccv_agree_voiceless3,
+        single_ranking(star_above))
+]
 
 # UR is voice, voiceless, vowel, voice
 ccvc_dis1 = Word(
@@ -107,12 +124,17 @@ ccvc_dis1 = Word(
 # ccv_dis2 = Word([voiceless_obstruent, voice_obstruent, vowel])
 ccvc_agree_voiceless = Word(
     [voiceless_obstruent, voiceless_obstruent, vowel, voiceless_obstruent])
+ccvc_agree_voiceless2 = Word(
+    [voiceless_obstruent, voiceless_obstruent, vowel, voiceless_obstruent])
 
 star_agree_double_c_examples = [
     (ccv_dis1,
         single_ranking(faith_voi)),
     (ccv_agree_voiceless,
-        single_ranking(star_above))]
+        single_ranking(star_above)),
+    (ccv_agree_voiceless2,
+        single_ranking(star_above))
+]
 
 # UR is vowel, voice, voiceless, vowel
 # vccv_agree = Word([vowel, voice_obstruent, voice_obstruent, vowel])
@@ -120,9 +142,14 @@ vccv_dis1 = Word([vowel, voice_obstruent, voiceless_obstruent, vowel])
 # vccv_dis2 = Word([vowel, voiceless_obstruent, voice_obstruent, vowel])
 vccv_agree_voiceless = Word(
     [vowel, voiceless_obstruent, voiceless_obstruent, vowel])
+vccv_agree_voiceless2 = Word(
+    [vowel, voiceless_obstruent, voiceless_obstruent, vowel])
 
 star_agree_double_vowel_examples = [
     (vccv_dis1,
         single_ranking(faith_voi)),
     (vccv_agree_voiceless,
-        single_ranking(star_above))]
+        single_ranking(star_above)),
+    (vccv_agree_voiceless2,
+        single_ranking(star_above))
+]
