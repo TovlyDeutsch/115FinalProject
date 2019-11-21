@@ -66,11 +66,11 @@ class Word():
   def __init__(self, segments: List[PossibleSegments]):
     self.segments = segments
 
-  def gen_sample_output(self) -> List[str]:
+  def gen_sample_output(self, min_number_of_examples: int, max_number_of_examples: int) -> List[str]:
     """This generates multiple intances of a word/input seperated by <sep>"""
     src = ['<sos>']
     number_of_outputs = random.Random(0).randint(
-        10, 20)  # TODO remove magic numbers here
+        min_number_of_examples, max_number_of_examples)
     for i in range(number_of_outputs):
       for seg in self.segments:
         src.append(seg.sample().char)
@@ -82,24 +82,25 @@ class Word():
 def gen_examples_for_word_and_rankings(
         word: Word,
         rankings: PossibleRankings,
-        min_num: int,
-        max_num: int) -> List[Tuple[List[str], Ranking]]:
+        min_per_pair: int,
+        max_per_pair: int, min_per_word: int, max_per_word: int) -> List[Tuple[List[str], Ranking]]:
   # TODO maybe change from uniform random to dome dist weight toward larger
-  num_examples = random.Random(0).randint(min_num, max_num)
-  return [(word.gen_sample_output(), rankings.sample())
+  num_examples = random.Random(0).randint(min_per_pair, max_per_pair)
+  return [(word.gen_sample_output(min_per_word, max_per_word), rankings.sample())
           for i in range(num_examples)]
 
 
-def gen_all_examples(
-        words_and_rankings: List[Tuple[Word, PossibleRankings]]) -> List[Tuple[List[str], Ranking]]:
+def gen_all_examples(words_and_rankings: List[Tuple[Word,
+                                                    PossibleRankings]],
+                     min_per_pair,
+                     max_per_pair, min_per_word, max_per_word) -> List[Tuple[List[str],
+                                                           Ranking]]:
   examples = []
-  min_number_of_examples = 20  # TODO maybe make this command line arg and/or param
-  max_number_of_examples = 100
   for word, rankings in words_and_rankings:
     examples += gen_examples_for_word_and_rankings(word,
                                                    rankings,
-                                                   min_number_of_examples,
-                                                   max_number_of_examples)
+                                                   min_per_pair,
+                                                   max_per_pair, min_per_word, max_per_word)
   return examples
 
 

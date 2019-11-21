@@ -9,4 +9,3 @@ sonorants = vowels.union(set(('l', 'n', 'w')))
 obstruents = phones - sonorants
 voice_obstruents = obstruents - voiceless_consonants
 voiceless_obstruents = obstruents - voice_obstruents
-print(voiceless_obstruents)

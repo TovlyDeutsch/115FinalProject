@@ -113,6 +113,30 @@ if __name__ == "__main__":
       type=int,
       default=5,
       help='number of epochs')
+  parser.add_argument(
+      '--min_word_examples',
+      action='store',
+      type=int,
+      default=10,
+      help='minimum number of examples per word')
+  parser.add_argument(
+      '--max_word_examples',
+      action='store',
+      type=int,
+      default=100,
+      help='maximum number of examples per word')
+  parser.add_argument(
+      '--min_pair_examples',
+      action='store',
+      type=int,
+      default=10,
+      help='minimum number of examples per word ranking pair')
+  parser.add_argument(
+      '--max_pair_examples',
+      action='store',
+      type=int,
+      default=100,
+      help='maximum number of examples per word ranking pair')
 
   args = parser.parse_args()
 
@@ -120,11 +144,18 @@ if __name__ == "__main__":
 
   SRC = Field()
   TRG = Field()
+
+  def gen_examples_with_params(words_and_rankings):
+    return gen_all_examples(words_and_rankings,
+                            args.min_pair_examples,
+                            args.max_pair_examples,
+                            args.min_word_examples,
+                            args.max_word_examples)
   # words_and_rankings = end_voi_examples
   words_and_rankings = end_voi_examples + hypo_voi_examples + star_agree_examples + \
       star_agree_double_c_examples + star_agree_double_vowel_examples
-  tupled_examples = gen_all_examples(words_and_rankings)
-  tupled_star_double_agree_examples = gen_all_examples(
+  tupled_examples = gen_examples_with_params(words_and_rankings)
+  tupled_star_double_agree_examples = gen_examples_with_params(
       star_agree_double_vowel_examples)
   # tupled_hypo_examples = gen_all_examples(hypo_voi_examples)
   if not args.unshuffle:
