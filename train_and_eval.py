@@ -50,7 +50,14 @@ def train(model, iterator, optimizer, criterion, clip):
   return epoch_loss / len(iterator)
 
 
-def evaluate(model, iterator, criterion, TRG, SRC, print_results=False):
+def evaluate(
+        model,
+        iterator,
+        criterion,
+        TRG,
+        SRC,
+        print_results=False,
+        beam=False):
 
   model.eval()
 
@@ -64,7 +71,8 @@ def evaluate(model, iterator, criterion, TRG, SRC, print_results=False):
       trg = batch.trg
 
       output = model(src, trg, 0)  # turn off teacher forcing
-      beam_search(output, TRG)
+      if beam:
+        beam_search(output, TRG)
 
       # trg = [trg sent len, batch size]
       # output = [trg sent len, batch size, output dim]
@@ -74,10 +82,14 @@ def evaluate(model, iterator, criterion, TRG, SRC, print_results=False):
       #       output[:, i, :], 1).tolist()))
       #   if readable_output == grail:
       #     print('found grail!')
-      if print_results and i % random.randint(0, 10) == 0:
-        print(list(map(lambda x: SRC.vocab.itos[x], src[:, 0].tolist())))
-        print(list(map(lambda x: TRG.vocab.itos[x], torch.argmax(
-            output[:, 0, :], 1).tolist())))
+      if print_results and i % random.randint(
+              1, 20) or i % random.randint(1, 15) == 0:
+        source = list(
+            map(lambda x: SRC.vocab.itos[x], src[:, 0].tolist()))[1:-1]
+        print(''.join(source).replace('<sep>', ', '), end=' & ')
+        output_list = list(map(lambda x: TRG.vocab.itos[x], torch.argmax(
+            output[:, 0, :], 1).tolist()))[1:-1]
+        print(' >> '.join(output_list))
 
       output = output[1:].view(-1, output.shape[-1])
       trg = trg[1:].view(-1)
@@ -106,6 +118,8 @@ if __name__ == "__main__":
       description='Train and evaluate an OT constraint learner.')
   parser.add_argument('--unshuffle', '-u', action='store_true',
                       help='whether to not shuffle the entire dataset')
+  parser.add_argument('--beam', '-b', action='store_true',
+                      help='whether to not perform beam searches')
   parser.add_argument(
       '--epochs',
       '-e',
@@ -171,7 +185,7 @@ if __name__ == "__main__":
   # tupled_hypo_examples = gen_all_examples(hypo_voi_examples)
   if not args.unshuffle:
     print('shuffling')
-    random.Random(0).shuffle(tupled_examples)  # TODO make shuffling a param
+    random.shuffle(tupled_examples)  # TODO make shuffling a param
   valid_split = int(len(tupled_examples) * 0.5)
   test_split = int(len(tupled_examples) * 0.75)
   train_data = OTDataset(
@@ -243,7 +257,12 @@ if __name__ == "__main__":
     start_time = time.time()
 
     train_loss = train(model, train_iterator, optimizer, criterion, CLIP)
-    valid_loss = evaluate(model, valid_iterator, criterion, TRG, SRC)
+    valid_loss = evaluate(
+        model,
+        valid_iterator,
+        criterion,
+        TRG,
+        SRC, print_results=False)
 
     end_time = time.time()
 
@@ -266,7 +285,7 @@ if __name__ == "__main__":
       test_iterator,
       criterion,
       TRG, SRC,
-      print_results=True)
+      print_results=True, beam=args.beam)
 
   print(
       f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
