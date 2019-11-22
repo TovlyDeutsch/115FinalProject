@@ -1,1 +1,13 @@
 python train_and_eval.py
+
+python train_and_eval.py --min_word_examples 1 --max_word_examples 5
+python train_and_eval.py --min_word_examples 1 --max_word_examples 1 -e 20
+python train_and_eval.py --min_word_examples 1 --max_word_examples 5 -e 20
+python train_and_eval.py --min_word_examples 10 --max_word_examples 50 -e 20
+
+python train_and_eval.py --min_word_examples 1 --max_word_examples 5 --min_pair_examples 1 --min_pair_examples 10 -e 20
+
+python train_and_eval.py --min_word_examples 1 --max_word_examples 5 -e 20 -b
+
+
+python train_and_eval.py --min_word_examples 1 --max_word_examples 5 -e 20 -t double_vowel
