@@ -30,7 +30,9 @@ def beam_search(output, TRG, beam_k=15):
     # first index is batch num and seond is k
     if math.exp(k_probabilities[0, 0].numpy()) - \
             math.exp(k_probabilities[0, 1].numpy()) > 0.1:
-      print(k_probabilities[0, 0].numpy())
-      print(k_probabilities[0, 1].numpy())
-      print(batch_seqs[0])
+      print(
+          f'{math.exp(k_probabilities[0, 0].numpy()):.3f}: {" >> ".join(batch_seqs[0])}')
+      print(
+          f'{math.exp(k_probabilities[0, 1].numpy()):.3f}: {" >> ".join(batch_seqs[1])}')
+      # print(batch_seqs[0])
       # print(batch_seqs[beam_k - 1])
