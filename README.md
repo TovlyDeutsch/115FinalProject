@@ -1,6 +1,6 @@
 # 115FinalProject
 
-This repository contains the code used for the experiments for my final project in Linguistics 115.
+This repository contains the code used for the experiments for my final project in Linguistics 115 ["Learning Constraint Rankings with Sequence to Sequence Models"](https://tovly.com/Ling_115_Squib.pdf).
 
 To run the experiments, first install the requirements with 
 
